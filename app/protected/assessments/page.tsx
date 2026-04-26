@@ -4,9 +4,9 @@ import { getProductManagers } from "@/lib/actions/product-managers";
 import { getAssessmentsForPM } from "@/lib/actions/assessments";
 import { seedDefaultCriteria } from "@/lib/actions/criteria";
 import { PMSelector } from "@/components/assessments/pm-selector";
-import { PMManagerDialog } from "@/components/assessments/pm-manager-dialog";
 import { AssessmentList } from "@/components/assessments/assessment-list";
 import { ClipboardList, Users } from "lucide-react";
+import Link from "next/link";
 
 export default async function AssessmentsPage({
   searchParams,
@@ -43,7 +43,6 @@ export default async function AssessmentsPage({
         <Suspense>
           <PMSelector productManagers={productManagers} />
         </Suspense>
-        <PMManagerDialog productManagers={productManagers} />
       </div>
 
       {productManagers.length === 0 ? (
@@ -51,7 +50,11 @@ export default async function AssessmentsPage({
           <Users className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="font-semibold text-lg">No Product Managers Yet</h3>
           <p className="text-muted-foreground text-sm mt-1 max-w-md">
-            Add your product managers to get started with skill assessments.
+            Add your product managers in{" "}
+            <Link href="/protected/admin/product-managers" className="underline hover:text-foreground">
+              Admin &rarr; Product Managers
+            </Link>{" "}
+            to get started.
           </p>
         </div>
       ) : !selectedPm ? (

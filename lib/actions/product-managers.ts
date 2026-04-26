@@ -30,6 +30,7 @@ export async function createProductManager(formData: FormData) {
 
   if (error) throw error;
   revalidatePath("/protected/assessments");
+  revalidatePath("/protected/admin/product-managers");
 }
 
 export async function deleteProductManager(id: string) {
@@ -41,4 +42,5 @@ export async function deleteProductManager(id: string) {
 
   if (error) throw error;
   revalidatePath("/protected/assessments");
+  revalidatePath("/protected/admin/product-managers");
 }

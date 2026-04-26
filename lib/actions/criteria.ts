@@ -34,6 +34,7 @@ export async function createCriterion(formData: FormData) {
 
   if (error) throw error;
   revalidatePath("/protected/assessments");
+  revalidatePath("/protected/admin/criteria");
 }
 
 export async function updateCriterion(formData: FormData) {
@@ -52,6 +53,7 @@ export async function updateCriterion(formData: FormData) {
 
   if (error) throw error;
   revalidatePath("/protected/assessments");
+  revalidatePath("/protected/admin/criteria");
 }
 
 export async function deleteCriterion(id: string) {
@@ -63,6 +65,7 @@ export async function deleteCriterion(id: string) {
 
   if (error) throw error;
   revalidatePath("/protected/assessments");
+  revalidatePath("/protected/admin/criteria");
 }
 
 const DEFAULT_CRITERIA: {
