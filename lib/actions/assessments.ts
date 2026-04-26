@@ -10,7 +10,7 @@ export async function getAssessmentsForPM(pmId: string) {
     .from("assessments")
     .select("*")
     .eq("pm_id", pmId)
-    .order("quarter", { ascending: false });
+    .order("cadence", { ascending: false });
 
   if (error) throw error;
   return data;
@@ -35,7 +35,7 @@ export async function getAssessmentsPaginated({
   let query = supabase
     .from("assessments")
     .select("*, product_managers!inner(name)", { count: "exact" })
-    .order("quarter", { ascending: false })
+    .order("cadence", { ascending: false })
     .range(from, to);
 
   if (pmId) {
@@ -108,7 +108,7 @@ export async function getLastScoresForPM(
     .from("assessments")
     .select("id")
     .eq("pm_id", pmId)
-    .order("quarter", { ascending: false })
+    .order("cadence", { ascending: false })
     .limit(1);
 
   if (excludeAssessmentId) {
@@ -139,7 +139,7 @@ export async function createAssessment(formData: FormData) {
   if (!user) throw new Error("Not authenticated");
 
   const pmId = formData.get("pm_id") as string;
-  const quarter = formData.get("quarter") as string;
+  const cadence = formData.get("cadence") as string;
   const notes = (formData.get("notes") as string) || null;
 
   // Insert assessment
@@ -148,7 +148,7 @@ export async function createAssessment(formData: FormData) {
     .insert({
       user_id: user.id,
       pm_id: pmId,
-      quarter,
+      cadence,
       notes,
     })
     .select()
@@ -332,7 +332,7 @@ export async function getTrendData(pmId: string): Promise<DimensionTrendPoint[]>
     .from("assessments")
     .select(
       `
-      quarter,
+      cadence,
       assessment_scores (
         current_score,
         target_score,
@@ -343,21 +343,21 @@ export async function getTrendData(pmId: string): Promise<DimensionTrendPoint[]>
     `
     )
     .eq("pm_id", pmId)
-    .order("quarter");
+    .order("cadence");
 
   if (error) throw error;
 
-  // Compute dimension averages per quarter
-  const quarterDimensions = new Map<
+  // Compute dimension averages per cadence period
+  const cadenceDimensions = new Map<
     string,
     Map<string, { currentSum: number; targetSum: number; count: number }>
   >();
 
   for (const assessment of data) {
-    if (!quarterDimensions.has(assessment.quarter)) {
-      quarterDimensions.set(assessment.quarter, new Map());
+    if (!cadenceDimensions.has(assessment.cadence)) {
+      cadenceDimensions.set(assessment.cadence, new Map());
     }
-    const dimMap = quarterDimensions.get(assessment.quarter)!;
+    const dimMap = cadenceDimensions.get(assessment.cadence)!;
 
     for (const score of assessment.assessment_scores as any[]) {
       const dimension = score.criterion?.dimension;
@@ -374,10 +374,10 @@ export async function getTrendData(pmId: string): Promise<DimensionTrendPoint[]>
   }
 
   const result: DimensionTrendPoint[] = [];
-  for (const [quarter, dimMap] of quarterDimensions) {
+  for (const [cadence, dimMap] of cadenceDimensions) {
     for (const [dimension, stats] of dimMap) {
       result.push({
-        quarter,
+        cadence,
         dimension: dimension as DimensionTrendPoint["dimension"],
         avg_current: Math.round((stats.currentSum / stats.count) * 10) / 10,
         avg_target: Math.round((stats.targetSum / stats.count) * 10) / 10,

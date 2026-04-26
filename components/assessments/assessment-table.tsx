@@ -12,6 +12,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Assessment } from "@/lib/types/assessments";
+import { formatCadenceLabel } from "@/lib/types/assessments";
 import { Plus, ClipboardList } from "lucide-react";
 import { Pagination } from "./pagination";
 
@@ -67,7 +68,7 @@ export function AssessmentTable({
               <TableHeader>
                 <TableRow>
                   <TableHead>PM</TableHead>
-                  <TableHead>Quarter</TableHead>
+                  <TableHead>Period</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Notes</TableHead>
@@ -89,7 +90,7 @@ export function AssessmentTable({
                         href={`/protected/assessments/${assessment.id}`}
                         className="block"
                       >
-                        {assessment.quarter}
+                        {formatCadenceLabel(assessment.cadence)}
                       </Link>
                     </TableCell>
                     <TableCell>

@@ -54,7 +54,7 @@ export default async function TrendsPage({
           <TrendingUp className="h-12 w-12 text-muted-foreground mb-4" />
           <h3 className="font-semibold text-lg">No Trend Data Yet</h3>
           <p className="text-muted-foreground text-sm mt-1 max-w-md">
-            Complete at least one assessment to see trends. Multiple quarters
+            Complete at least one assessment to see trends. Multiple periods
             will show progression over time.
           </p>
         </div>

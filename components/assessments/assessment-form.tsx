@@ -34,9 +34,11 @@ import type {
 } from "@/lib/types/assessments";
 import {
   DIMENSION_LABELS,
-  getCurrentQuarter,
-  getQuarterOptions,
+  getCurrentCadence,
+  getCadenceOptions,
+  formatCadenceLabel,
 } from "@/lib/types/assessments";
+import type { Rhythm } from "@/lib/types/assessments";
 
 export function AssessmentForm({
   productManagers,
@@ -44,12 +46,14 @@ export function AssessmentForm({
   existingAssessment,
   preselectedPmId,
   lastScores,
+  rhythm = "quarterly",
 }: {
   productManagers: ProductManager[];
   criteria: AssessmentCriterion[];
   existingAssessment?: AssessmentWithScores;
   preselectedPmId?: string;
   lastScores?: Record<string, number>;
+  rhythm?: Rhythm;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -154,23 +158,33 @@ export function AssessmentForm({
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Quarter</Label>
-              <Select
-                name="quarter"
-                defaultValue={getCurrentQuarter()}
-                required
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {getQuarterOptions().map((q) => (
-                    <SelectItem key={q} value={q}>
-                      {q}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Period</Label>
+              {rhythm === "adhoc" ? (
+                <input
+                  type="date"
+                  name="cadence"
+                  defaultValue={getCurrentCadence("adhoc")}
+                  required
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                />
+              ) : (
+                <Select
+                  name="cadence"
+                  defaultValue={getCurrentCadence(rhythm)}
+                  required
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getCadenceOptions(rhythm).map((c) => (
+                      <SelectItem key={c} value={c}>
+                        {formatCadenceLabel(c)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           </div>
         )}

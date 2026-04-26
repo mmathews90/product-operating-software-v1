@@ -26,6 +26,10 @@ export default function AdminLayout({
             href="/protected/admin/levels"
             label="Levels"
           />
+          <AdminNavLink
+            href="/protected/admin/settings"
+            label="Settings"
+          />
         </Suspense>
       </div>
 

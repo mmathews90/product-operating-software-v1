@@ -11,7 +11,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { DimensionTrendPoint, Dimension } from "@/lib/types/assessments";
-import { DIMENSION_LABELS } from "@/lib/types/assessments";
+import { DIMENSION_LABELS, formatCadenceLabel } from "@/lib/types/assessments";
 
 const DIMENSION_COLORS: Record<Dimension, string> = {
   product_knowledge: "hsl(var(--chart-1))",
@@ -26,12 +26,12 @@ export function TrendChart({
   data: DimensionTrendPoint[];
   height?: number;
 }) {
-  // Transform data into recharts format: { quarter, product_knowledge, process_knowledge, people_skills, ... }
-  const quarters = [...new Set(data.map((d) => d.quarter))].sort();
+  // Transform data into recharts format: { cadence, product_knowledge, process_knowledge, people_skills, ... }
+  const cadences = [...new Set(data.map((d) => d.cadence))].sort();
 
-  const chartData = quarters.map((quarter) => {
-    const point: Record<string, string | number> = { quarter };
-    for (const d of data.filter((d) => d.quarter === quarter)) {
+  const chartData = cadences.map((cadence) => {
+    const point: Record<string, string | number> = { cadence };
+    for (const d of data.filter((d) => d.cadence === cadence)) {
       point[`${d.dimension}_current`] = d.avg_current;
       point[`${d.dimension}_target`] = d.avg_target;
     }
@@ -45,7 +45,7 @@ export function TrendChart({
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-          <XAxis dataKey="quarter" className="text-xs" />
+          <XAxis dataKey="cadence" className="text-xs" tickFormatter={formatCadenceLabel} />
           <YAxis domain={[1, 10]} className="text-xs" />
           <Tooltip
             contentStyle={{

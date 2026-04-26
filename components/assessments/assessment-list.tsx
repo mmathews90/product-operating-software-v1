@@ -9,6 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { Assessment } from "@/lib/types/assessments";
+import { formatCadenceLabel } from "@/lib/types/assessments";
 import { ClipboardList, Plus } from "lucide-react";
 
 export function AssessmentList({
@@ -64,7 +65,7 @@ export function AssessmentList({
                 <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-base">
-                      {assessment.quarter}
+                      {formatCadenceLabel(assessment.cadence)}
                     </CardTitle>
                     <Badge variant="outline">
                       {new Date(assessment.created_at).toLocaleDateString()}

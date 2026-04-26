@@ -8,6 +8,7 @@ import {
 import { getProductManagers } from "@/lib/actions/product-managers";
 import { getCriteria } from "@/lib/actions/criteria";
 import { AssessmentForm } from "@/components/assessments/assessment-form";
+import { formatCadenceLabel } from "@/lib/types/assessments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -63,7 +64,7 @@ export default async function AssessmentDetailPage({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">
-                {pm?.name} — {assessment.quarter}
+                {pm?.name} — {formatCadenceLabel(assessment.cadence)}
               </h1>
               <Badge
                 variant={

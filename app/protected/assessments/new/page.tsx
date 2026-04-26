@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { getProductManagers } from "@/lib/actions/product-managers";
 import { getCriteria } from "@/lib/actions/criteria";
 import { getLastScoresForPM } from "@/lib/actions/assessments";
+import { getUserSettings } from "@/lib/actions/settings";
 import { AssessmentForm } from "@/components/assessments/assessment-form";
 
 export default async function NewAssessmentPage({
@@ -28,7 +29,10 @@ export default async function NewAssessmentPage({
     redirect("/protected/assessments");
   }
 
-  const lastScores = pmId ? await getLastScoresForPM(pmId) : {};
+  const [lastScores, settings] = await Promise.all([
+    pmId ? getLastScoresForPM(pmId) : Promise.resolve({}),
+    getUserSettings(),
+  ]);
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6">
@@ -45,6 +49,7 @@ export default async function NewAssessmentPage({
         criteria={criteria}
         preselectedPmId={pmId}
         lastScores={lastScores}
+        rhythm={settings.rhythm}
       />
     </div>
   );
