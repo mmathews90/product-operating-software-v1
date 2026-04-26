@@ -20,7 +20,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ScoreSlider } from "./score-slider";
+import { ScoreInput } from "./score-input";
 import {
   createAssessment,
   updateAssessment,
@@ -43,11 +43,13 @@ export function AssessmentForm({
   criteria,
   existingAssessment,
   preselectedPmId,
+  lastScores,
 }: {
   productManagers: ProductManager[];
   criteria: AssessmentCriterion[];
   existingAssessment?: AssessmentWithScores;
   preselectedPmId?: string;
+  lastScores?: Record<string, number>;
 }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
@@ -106,7 +108,6 @@ export function AssessmentForm({
         formData.set("assessment_id", existingAssessment.id);
         await completeAssessment(formData);
       } else {
-        // Create first, then complete
         const assessmentId = await createAssessment(formData);
         const completeData = new FormData(formRef.current);
         completeData.set("assessment_id", assessmentId);
@@ -187,12 +188,12 @@ export function AssessmentForm({
             {criteriaByDimension[dim]?.map((criterion) => {
               const existing = getExistingScore(criterion.id);
               return (
-                <ScoreSlider
+                <ScoreInput
                   key={criterion.id}
                   criterion={criterion}
-                  defaultTarget={existing?.target_score}
                   defaultCurrent={existing?.current_score}
                   defaultNotes={existing?.notes ?? undefined}
+                  lastScore={lastScores?.[criterion.id]}
                   disabled={isCompleted}
                 />
               );

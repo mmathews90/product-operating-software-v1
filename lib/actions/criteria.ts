@@ -30,6 +30,7 @@ export async function createCriterion(formData: FormData) {
     dimension: formData.get("dimension") as Dimension,
     description: (formData.get("description") as string) || null,
     sort_order: parseInt(formData.get("sort_order") as string) || 0,
+    target_score: parseInt(formData.get("target_score") as string) || 7,
   });
 
   if (error) throw error;
@@ -48,6 +49,7 @@ export async function updateCriterion(formData: FormData) {
       dimension: formData.get("dimension") as Dimension,
       description: (formData.get("description") as string) || null,
       sort_order: parseInt(formData.get("sort_order") as string) || 0,
+      target_score: parseInt(formData.get("target_score") as string) || 7,
     })
     .eq("id", id);
 
@@ -73,6 +75,7 @@ const DEFAULT_CRITERIA: {
   dimension: Dimension;
   description: string;
   sort_order: number;
+  target_score: number;
 }[] = [
   // Product Knowledge
   {
@@ -81,6 +84,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Deep knowledge of target customers, their needs, and market dynamics",
     sort_order: 1,
+    target_score: 7,
   },
   {
     name: "Data Fluency",
@@ -88,6 +92,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Ability to leverage quantitative and qualitative data for product decisions",
     sort_order: 2,
+    target_score: 7,
   },
   {
     name: "Domain Expertise",
@@ -95,6 +100,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Understanding of the industry, competitive landscape, and technology trends",
     sort_order: 3,
+    target_score: 7,
   },
   {
     name: "Business Acumen",
@@ -102,6 +108,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Understanding of business models, revenue, and go-to-market strategies",
     sort_order: 4,
+    target_score: 7,
   },
   {
     name: "Technical Literacy",
@@ -109,6 +116,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Sufficient understanding of technology to make informed trade-off decisions",
     sort_order: 5,
+    target_score: 7,
   },
   // Process Knowledge
   {
@@ -117,6 +125,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Ability to run effective discovery techniques (prototyping, experiments, user research)",
     sort_order: 1,
+    target_score: 7,
   },
   {
     name: "Product Delivery",
@@ -124,6 +133,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Ability to ship reliably through agile practices and cross-functional collaboration",
     sort_order: 2,
+    target_score: 7,
   },
   {
     name: "Roadmapping & Prioritization",
@@ -131,6 +141,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Skills in outcome-based roadmapping and prioritization frameworks",
     sort_order: 3,
+    target_score: 7,
   },
   {
     name: "Product Strategy",
@@ -138,6 +149,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Ability to define and communicate a compelling product vision and strategy",
     sort_order: 4,
+    target_score: 7,
   },
   {
     name: "Metrics & Outcomes",
@@ -145,6 +157,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Defining and tracking meaningful product metrics aligned to business outcomes",
     sort_order: 5,
+    target_score: 7,
   },
   // People Skills
   {
@@ -153,6 +166,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Effective engagement with executives, partners, and cross-functional leaders",
     sort_order: 1,
+    target_score: 7,
   },
   {
     name: "Team Collaboration",
@@ -160,6 +174,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Ability to work effectively with engineering, design, and other disciplines",
     sort_order: 2,
+    target_score: 7,
   },
   {
     name: "Communication",
@@ -167,6 +182,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Clear, persuasive written and verbal communication skills",
     sort_order: 3,
+    target_score: 7,
   },
   {
     name: "Leadership & Influence",
@@ -174,6 +190,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Ability to lead without authority and influence outcomes through trust",
     sort_order: 4,
+    target_score: 7,
   },
   {
     name: "Coaching & Mentoring",
@@ -181,6 +198,7 @@ const DEFAULT_CRITERIA: {
     description:
       "Supporting team growth through feedback, mentorship, and knowledge sharing",
     sort_order: 5,
+    target_score: 7,
   },
 ];
 

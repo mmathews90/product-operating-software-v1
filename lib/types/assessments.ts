@@ -32,6 +32,7 @@ export interface AssessmentCriterion {
   dimension: Dimension;
   description: string | null;
   sort_order: number;
+  target_score: number;
   created_at: string;
 }
 

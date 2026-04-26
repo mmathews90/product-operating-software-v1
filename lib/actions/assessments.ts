@@ -97,6 +97,39 @@ export async function getAssessmentById(
   };
 }
 
+export async function getLastScoresForPM(
+  pmId: string,
+  excludeAssessmentId?: string
+): Promise<Record<string, number>> {
+  const supabase = await createClient();
+
+  // Find the most recent assessment for this PM
+  let query = supabase
+    .from("assessments")
+    .select("id")
+    .eq("pm_id", pmId)
+    .order("quarter", { ascending: false })
+    .limit(1);
+
+  if (excludeAssessmentId) {
+    query = query.neq("id", excludeAssessmentId);
+  }
+
+  const { data: assessments } = await query;
+  if (!assessments || assessments.length === 0) return {};
+
+  const { data: scores } = await supabase
+    .from("assessment_scores")
+    .select("criterion_id, current_score")
+    .eq("assessment_id", assessments[0].id);
+
+  if (!scores) return {};
+
+  return Object.fromEntries(
+    scores.map((s) => [s.criterion_id, s.current_score])
+  );
+}
+
 export async function createAssessment(formData: FormData) {
   const supabase = await createClient();
   const {
@@ -123,6 +156,15 @@ export async function createAssessment(formData: FormData) {
 
   if (assessmentError) throw assessmentError;
 
+  // Fetch criteria target scores to snapshot them
+  const { data: criteria } = await supabase
+    .from("assessment_criteria")
+    .select("id, target_score");
+
+  const targetMap = Object.fromEntries(
+    (criteria ?? []).map((c: any) => [c.id, c.target_score])
+  );
+
   // Collect scores from form data
   const scores: {
     assessment_id: string;
@@ -139,7 +181,7 @@ export async function createAssessment(formData: FormData) {
         assessment_id: assessment.id,
         criterion_id: criterionId,
         current_score: parseInt(value as string),
-        target_score: parseInt(formData.get(`target_${criterionId}`) as string),
+        target_score: targetMap[criterionId] ?? 7,
         notes: (formData.get(`notes_${criterionId}`) as string) || null,
       });
     }
@@ -181,6 +223,15 @@ export async function updateAssessment(formData: FormData) {
 
   if (assessmentError) throw assessmentError;
 
+  // Fetch criteria target scores to snapshot them
+  const { data: criteria } = await supabase
+    .from("assessment_criteria")
+    .select("id, target_score");
+
+  const targetMap = Object.fromEntries(
+    (criteria ?? []).map((c: any) => [c.id, c.target_score])
+  );
+
   // Upsert scores
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("current_")) {
@@ -192,9 +243,7 @@ export async function updateAssessment(formData: FormData) {
             assessment_id: assessmentId,
             criterion_id: criterionId,
             current_score: parseInt(value as string),
-            target_score: parseInt(
-              formData.get(`target_${criterionId}`) as string
-            ),
+            target_score: targetMap[criterionId] ?? 7,
             notes: (formData.get(`notes_${criterionId}`) as string) || null,
           },
           { onConflict: "assessment_id,criterion_id" }
@@ -235,6 +284,15 @@ export async function completeAssessment(formData: FormData) {
 
   if (assessmentError) throw assessmentError;
 
+  // Fetch criteria target scores to snapshot them
+  const { data: criteria } = await supabase
+    .from("assessment_criteria")
+    .select("id, target_score");
+
+  const targetMap = Object.fromEntries(
+    (criteria ?? []).map((c: any) => [c.id, c.target_score])
+  );
+
   // Upsert scores
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("current_")) {
@@ -246,9 +304,7 @@ export async function completeAssessment(formData: FormData) {
             assessment_id: assessmentId,
             criterion_id: criterionId,
             current_score: parseInt(value as string),
-            target_score: parseInt(
-              formData.get(`target_${criterionId}`) as string
-            ),
+            target_score: targetMap[criterionId] ?? 7,
             notes: (formData.get(`notes_${criterionId}`) as string) || null,
           },
           { onConflict: "assessment_id,criterion_id" }

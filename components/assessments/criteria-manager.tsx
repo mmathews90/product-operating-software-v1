@@ -81,6 +81,7 @@ export function CriteriaManager({
             <TableHead>Name</TableHead>
             <TableHead>Dimension</TableHead>
             <TableHead>Description</TableHead>
+            <TableHead className="w-[60px]">Target</TableHead>
             <TableHead className="w-[60px]">Order</TableHead>
             <TableHead className="w-[80px]" />
           </TableRow>
@@ -95,6 +96,7 @@ export function CriteriaManager({
               <TableCell className="text-sm text-muted-foreground max-w-[300px] truncate">
                 {c.description}
               </TableCell>
+              <TableCell className="text-center">{c.target_score}</TableCell>
               <TableCell className="text-center">{c.sort_order}</TableCell>
               <TableCell>
                 <div className="flex gap-1">
@@ -196,14 +198,27 @@ function CriterionForm({
           rows={2}
         />
       </div>
-      <div className="space-y-2">
-        <Label htmlFor="crit-sort">Sort Order</Label>
-        <Input
-          id="crit-sort"
-          name="sort_order"
-          type="number"
-          defaultValue={defaultValues?.sort_order ?? 0}
-        />
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="crit-target">Target Score (1-10)</Label>
+          <Input
+            id="crit-target"
+            name="target_score"
+            type="number"
+            min={1}
+            max={10}
+            defaultValue={defaultValues?.target_score ?? 7}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="crit-sort">Sort Order</Label>
+          <Input
+            id="crit-sort"
+            name="sort_order"
+            type="number"
+            defaultValue={defaultValues?.sort_order ?? 0}
+          />
+        </div>
       </div>
       <Button type="submit" disabled={loading} className="w-full">
         {loading ? "Saving..." : defaultValues ? "Update" : "Add Criterion"}

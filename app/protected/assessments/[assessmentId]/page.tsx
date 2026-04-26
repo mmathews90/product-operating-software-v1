@@ -1,6 +1,10 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { getAssessmentById, deleteAssessment } from "@/lib/actions/assessments";
+import {
+  getAssessmentById,
+  deleteAssessment,
+  getLastScoresForPM,
+} from "@/lib/actions/assessments";
 import { getProductManagers } from "@/lib/actions/product-managers";
 import { getCriteria } from "@/lib/actions/criteria";
 import { AssessmentForm } from "@/components/assessments/assessment-form";
@@ -30,9 +34,10 @@ export default async function AssessmentDetailPage({
     redirect("/protected/assessments");
   }
 
-  const [productManagers, criteria] = await Promise.all([
+  const [productManagers, criteria, lastScores] = await Promise.all([
     getProductManagers(),
     getCriteria(),
+    getLastScoresForPM(assessment.pm_id, assessmentId),
   ]);
 
   const pm = productManagers.find((p) => p.id === assessment.pm_id);
@@ -94,6 +99,7 @@ export default async function AssessmentDetailPage({
         productManagers={productManagers}
         criteria={criteria}
         existingAssessment={assessment}
+        lastScores={lastScores}
       />
     </div>
   );
