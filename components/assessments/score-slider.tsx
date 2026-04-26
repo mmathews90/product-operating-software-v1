@@ -12,18 +12,20 @@ export function ScoreSlider({
   defaultTarget,
   defaultCurrent,
   defaultNotes,
+  disabled,
 }: {
   criterion: AssessmentCriterion;
   defaultTarget?: number;
   defaultCurrent?: number;
   defaultNotes?: string;
+  disabled?: boolean;
 }) {
   const [target, setTarget] = useState(defaultTarget ?? 7);
   const [current, setCurrent] = useState(defaultCurrent ?? 5);
   const [showNotes, setShowNotes] = useState(!!defaultNotes);
 
   return (
-    <div className="space-y-3 p-4 rounded-lg border">
+    <div className={`space-y-3 p-4 rounded-lg border ${disabled ? "opacity-75" : ""}`}>
       <div className="flex items-start justify-between gap-2">
         <div>
           <h4 className="font-medium text-sm">{criterion.name}</h4>
@@ -44,10 +46,11 @@ export function ScoreSlider({
           </div>
           <Slider
             value={[target]}
-            onValueChange={([v]) => setTarget(v)}
+            onValueChange={disabled ? undefined : ([v]) => setTarget(v)}
             min={1}
             max={10}
             step={1}
+            disabled={disabled}
             className="[&_[role=slider]]:bg-primary"
           />
           <input type="hidden" name={`target_${criterion.id}`} value={target} />
@@ -59,10 +62,11 @@ export function ScoreSlider({
           </div>
           <Slider
             value={[current]}
-            onValueChange={([v]) => setCurrent(v)}
+            onValueChange={disabled ? undefined : ([v]) => setCurrent(v)}
             min={1}
             max={10}
             step={1}
+            disabled={disabled}
           />
           <input
             type="hidden"
@@ -72,21 +76,24 @@ export function ScoreSlider({
         </div>
       </div>
 
-      <button
-        type="button"
-        onClick={() => setShowNotes(!showNotes)}
-        className="text-xs text-muted-foreground hover:text-foreground"
-      >
-        {showNotes ? "Hide notes" : "Add notes"}
-      </button>
+      {!disabled && (
+        <button
+          type="button"
+          onClick={() => setShowNotes(!showNotes)}
+          className="text-xs text-muted-foreground hover:text-foreground"
+        >
+          {showNotes ? "Hide notes" : "Add notes"}
+        </button>
+      )}
 
-      {showNotes && (
+      {(showNotes || (disabled && defaultNotes)) && (
         <Textarea
           name={`notes_${criterion.id}`}
           placeholder="Optional notes for this criterion..."
           defaultValue={defaultNotes}
           className="text-sm"
           rows={2}
+          disabled={disabled}
         />
       )}
     </div>

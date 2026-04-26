@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,9 +12,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScoreSlider } from "./score-slider";
-import { createAssessment, updateAssessment } from "@/lib/actions/assessments";
+import {
+  createAssessment,
+  updateAssessment,
+  completeAssessment,
+} from "@/lib/actions/assessments";
 import type {
   AssessmentCriterion,
   AssessmentWithScores,
@@ -39,10 +50,13 @@ export function AssessmentForm({
   preselectedPmId?: string;
 }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showCompleteDialog, setShowCompleteDialog] = useState(false);
 
   const isEditing = !!existingAssessment;
+  const isCompleted = existingAssessment?.status === "completed";
 
   const criteriaByDimension = criteria.reduce(
     (acc, c) => {
@@ -61,7 +75,7 @@ export function AssessmentForm({
     );
   }
 
-  async function handleSubmit(formData: FormData) {
+  async function handleSave(formData: FormData) {
     setLoading(true);
     setError(null);
     try {
@@ -81,73 +95,95 @@ export function AssessmentForm({
     }
   }
 
+  async function handleComplete() {
+    if (!formRef.current) return;
+    setShowCompleteDialog(false);
+    setLoading(true);
+    setError(null);
+    try {
+      const formData = new FormData(formRef.current);
+      if (isEditing) {
+        formData.set("assessment_id", existingAssessment.id);
+        await completeAssessment(formData);
+      } else {
+        // Create first, then complete
+        const assessmentId = await createAssessment(formData);
+        const completeData = new FormData(formRef.current);
+        completeData.set("assessment_id", assessmentId);
+        await completeAssessment(completeData);
+      }
+      router.push(
+        `/protected/assessments?pmId=${formRef.current.querySelector<HTMLInputElement>('[name="pm_id"]')?.value || existingAssessment?.pm_id}`
+      );
+    } catch (e: any) {
+      setError(e.message || "Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <form action={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
-          {error}
-        </div>
-      )}
-
-      {!isEditing && (
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label>Product Manager</Label>
-            <Select
-              name="pm_id"
-              defaultValue={preselectedPmId}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select PM" />
-              </SelectTrigger>
-              <SelectContent>
-                {productManagers.map((pm) => (
-                  <SelectItem key={pm.id} value={pm.id}>
-                    {pm.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+    <>
+      <form ref={formRef} action={handleSave} className="space-y-8">
+        {error && (
+          <div className="bg-destructive/10 text-destructive text-sm p-3 rounded-md">
+            {error}
           </div>
-          <div className="space-y-2">
-            <Label>Quarter</Label>
-            <Select
-              name="quarter"
-              defaultValue={getCurrentQuarter()}
-              required
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {getQuarterOptions().map((q) => (
-                  <SelectItem key={q} value={q}>
-                    {q}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      )}
+        )}
 
-      <Tabs defaultValue={dimensions[0]}>
-        <TabsList className="w-full">
-          {dimensions.map((dim) => (
-            <TabsTrigger key={dim} value={dim} className="flex-1">
-              {DIMENSION_LABELS[dim]}
-              {criteriaByDimension[dim] && (
-                <span className="ml-1 text-muted-foreground text-xs">
-                  ({criteriaByDimension[dim].length})
-                </span>
-              )}
-            </TabsTrigger>
-          ))}
-        </TabsList>
+        {!isEditing && (
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Product Manager</Label>
+              <Select
+                name="pm_id"
+                defaultValue={preselectedPmId}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select PM" />
+                </SelectTrigger>
+                <SelectContent>
+                  {productManagers.map((pm) => (
+                    <SelectItem key={pm.id} value={pm.id}>
+                      {pm.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Quarter</Label>
+              <Select
+                name="quarter"
+                defaultValue={getCurrentQuarter()}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {getQuarterOptions().map((q) => (
+                    <SelectItem key={q} value={q}>
+                      {q}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        )}
 
         {dimensions.map((dim) => (
-          <TabsContent key={dim} value={dim} className="space-y-3 mt-4">
+          <div key={dim} className="space-y-3">
+            <h3 className="text-lg font-semibold border-b pb-2">
+              {DIMENSION_LABELS[dim]}
+              {criteriaByDimension[dim] && (
+                <span className="ml-2 text-muted-foreground text-sm font-normal">
+                  {criteriaByDimension[dim].length} criteria
+                </span>
+              )}
+            </h3>
             {criteriaByDimension[dim]?.map((criterion) => {
               const existing = getExistingScore(criterion.id);
               return (
@@ -157,6 +193,7 @@ export function AssessmentForm({
                   defaultTarget={existing?.target_score}
                   defaultCurrent={existing?.current_score}
                   defaultNotes={existing?.notes ?? undefined}
+                  disabled={isCompleted}
                 />
               );
             })}
@@ -166,36 +203,77 @@ export function AssessmentForm({
                 No criteria defined for {DIMENSION_LABELS[dim]}.
               </p>
             )}
-          </TabsContent>
+          </div>
         ))}
-      </Tabs>
 
-      <div className="space-y-2">
-        <Label>Overall Notes</Label>
-        <Textarea
-          name="notes"
-          placeholder="Overall assessment notes..."
-          defaultValue={existingAssessment?.notes ?? ""}
-          rows={3}
-        />
-      </div>
+        <div className="space-y-2">
+          <Label>Overall Notes</Label>
+          <Textarea
+            name="notes"
+            placeholder="Overall assessment notes..."
+            defaultValue={existingAssessment?.notes ?? ""}
+            rows={3}
+            disabled={isCompleted}
+          />
+        </div>
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={loading}>
-          {loading
-            ? "Saving..."
-            : isEditing
-              ? "Update Assessment"
-              : "Create Assessment"}
-        </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => router.back()}
-        >
-          Cancel
-        </Button>
-      </div>
-    </form>
+        {!isCompleted && (
+          <div className="flex gap-3">
+            <Button type="submit" variant="outline" disabled={loading}>
+              {loading ? "Saving..." : "Save Draft"}
+            </Button>
+            <Button
+              type="button"
+              disabled={loading}
+              onClick={() => setShowCompleteDialog(true)}
+            >
+              {loading ? "Saving..." : "Complete Assessment"}
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => router.back()}
+            >
+              Cancel
+            </Button>
+          </div>
+        )}
+
+        {isCompleted && (
+          <div className="flex gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => router.back()}
+            >
+              Back
+            </Button>
+          </div>
+        )}
+      </form>
+
+      <Dialog open={showCompleteDialog} onOpenChange={setShowCompleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Complete Assessment</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to complete this assessment? Completed
+              assessments cannot be edited.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCompleteDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleComplete}>
+              Complete Assessment
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

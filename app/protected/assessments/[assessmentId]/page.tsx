@@ -54,27 +54,40 @@ export default async function AssessmentDetailPage({
       </Link>
 
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">
-            {pm?.name} — {assessment.quarter}
-          </h1>
-          <p className="text-muted-foreground text-sm mt-1">
-            Created{" "}
-            {new Date(assessment.created_at).toLocaleDateString()}
-            {assessment.updated_at !== assessment.created_at && (
-              <span>
-                {" "}
-                · Updated{" "}
-                {new Date(assessment.updated_at).toLocaleDateString()}
-              </span>
-            )}
-          </p>
+        <div className="flex items-center gap-3">
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold">
+                {pm?.name} — {assessment.quarter}
+              </h1>
+              <Badge
+                variant={
+                  assessment.status === "completed" ? "default" : "secondary"
+                }
+              >
+                {assessment.status === "completed" ? "Completed" : "Draft"}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground text-sm mt-1">
+              Created{" "}
+              {new Date(assessment.created_at).toLocaleDateString()}
+              {assessment.updated_at !== assessment.created_at && (
+                <span>
+                  {" "}
+                  · Updated{" "}
+                  {new Date(assessment.updated_at).toLocaleDateString()}
+                </span>
+              )}
+            </p>
+          </div>
         </div>
-        <form action={handleDelete}>
-          <Button variant="destructive" size="sm" type="submit">
-            Delete
-          </Button>
-        </form>
+        {assessment.status !== "completed" && (
+          <form action={handleDelete}>
+            <Button variant="destructive" size="sm" type="submit">
+              Delete
+            </Button>
+          </form>
+        )}
       </div>
 
       <AssessmentForm

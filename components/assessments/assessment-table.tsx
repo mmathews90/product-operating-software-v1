@@ -10,6 +10,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import type { Assessment } from "@/lib/types/assessments";
 import { Plus, ClipboardList } from "lucide-react";
 import { Pagination } from "./pagination";
@@ -67,6 +68,7 @@ export function AssessmentTable({
                 <TableRow>
                   <TableHead>PM</TableHead>
                   <TableHead>Quarter</TableHead>
+                  <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Notes</TableHead>
                 </TableRow>
@@ -88,6 +90,24 @@ export function AssessmentTable({
                         className="block"
                       >
                         {assessment.quarter}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link
+                        href={`/protected/assessments/${assessment.id}`}
+                        className="block"
+                      >
+                        <Badge
+                          variant={
+                            assessment.status === "completed"
+                              ? "default"
+                              : "secondary"
+                          }
+                        >
+                          {assessment.status === "completed"
+                            ? "Completed"
+                            : "Draft"}
+                        </Badge>
                       </Link>
                     </TableCell>
                     <TableCell>

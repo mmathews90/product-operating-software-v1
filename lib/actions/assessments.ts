@@ -162,10 +162,75 @@ export async function updateAssessment(formData: FormData) {
   const assessmentId = formData.get("assessment_id") as string;
   const notes = (formData.get("notes") as string) || null;
 
+  // Guard: cannot update completed assessments
+  const { data: existing } = await supabase
+    .from("assessments")
+    .select("status")
+    .eq("id", assessmentId)
+    .single();
+
+  if (existing?.status === "completed") {
+    throw new Error("Completed assessments cannot be edited");
+  }
+
   // Update assessment notes
   const { error: assessmentError } = await supabase
     .from("assessments")
     .update({ notes, updated_at: new Date().toISOString() })
+    .eq("id", assessmentId);
+
+  if (assessmentError) throw assessmentError;
+
+  // Upsert scores
+  for (const [key, value] of formData.entries()) {
+    if (key.startsWith("current_")) {
+      const criterionId = key.replace("current_", "");
+      const { error } = await supabase
+        .from("assessment_scores")
+        .upsert(
+          {
+            assessment_id: assessmentId,
+            criterion_id: criterionId,
+            current_score: parseInt(value as string),
+            target_score: parseInt(
+              formData.get(`target_${criterionId}`) as string
+            ),
+            notes: (formData.get(`notes_${criterionId}`) as string) || null,
+          },
+          { onConflict: "assessment_id,criterion_id" }
+        );
+
+      if (error) throw error;
+    }
+  }
+
+  revalidatePath("/protected/assessments");
+}
+
+export async function completeAssessment(formData: FormData) {
+  const supabase = await createClient();
+  const assessmentId = formData.get("assessment_id") as string;
+  const notes = (formData.get("notes") as string) || null;
+
+  // Guard: cannot complete an already-completed assessment
+  const { data: existing } = await supabase
+    .from("assessments")
+    .select("status")
+    .eq("id", assessmentId)
+    .single();
+
+  if (existing?.status === "completed") {
+    throw new Error("This assessment is already completed");
+  }
+
+  // Update assessment with completed status
+  const { error: assessmentError } = await supabase
+    .from("assessments")
+    .update({
+      notes,
+      status: "completed",
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", assessmentId);
 
   if (assessmentError) throw assessmentError;

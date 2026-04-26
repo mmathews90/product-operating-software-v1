@@ -40,6 +40,7 @@ export interface Assessment {
   user_id: string;
   pm_id: string;
   quarter: string;
+  status: "draft" | "completed";
   notes: string | null;
   created_at: string;
   updated_at: string;
