@@ -8,13 +8,15 @@ export function SidebarNavLink({
   href,
   icon,
   label,
+  exact = false,
 }: {
   href: string;
   icon: React.ReactNode;
   label: string;
+  exact?: boolean;
 }) {
   const pathname = usePathname();
-  const isActive = pathname.startsWith(href);
+  const isActive = exact ? pathname === href : pathname.startsWith(href);
 
   return (
     <Link

@@ -2,7 +2,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { SidebarNavLink } from "@/components/sidebar-nav-link";
 import { SidebarUserServer } from "@/components/sidebar-user-server";
 import { Separator } from "@/components/ui/separator";
-import { ClipboardList, Settings } from "lucide-react";
+import { ClipboardList, LayoutDashboard, Settings } from "lucide-react";
 import { Suspense } from "react";
 
 export function Sidebar() {
@@ -16,6 +16,14 @@ export function Sidebar() {
       <Separator />
 
       <nav className="flex-1 flex flex-col p-3">
+        <Suspense>
+          <SidebarNavLink
+            href="/protected"
+            icon={<LayoutDashboard className="h-4 w-4" />}
+            label="Dashboard"
+            exact
+          />
+        </Suspense>
         <Suspense>
           <SidebarNavLink
             href="/protected/assessments"

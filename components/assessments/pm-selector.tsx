@@ -12,24 +12,31 @@ import type { ProductManager } from "@/lib/types/assessments";
 
 export function PMSelector({
   productManagers,
+  basePath = "/protected/assessments",
 }: {
   productManagers: ProductManager[];
+  basePath?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const selectedPmId = searchParams.get("pmId") || "";
+  const selectedPmId = searchParams.get("pmId") || "all";
 
   return (
     <Select
       value={selectedPmId}
       onValueChange={(value) => {
-        router.push(`/protected/assessments?pmId=${value}`);
+        if (value === "all") {
+          router.push(basePath);
+        } else {
+          router.push(`${basePath}?pmId=${value}`);
+        }
       }}
     >
       <SelectTrigger className="w-[240px]">
-        <SelectValue placeholder="Select a PM" />
+        <SelectValue placeholder="All PMs" />
       </SelectTrigger>
       <SelectContent>
+        <SelectItem value="all">All PMs</SelectItem>
         {productManagers.map((pm) => (
           <SelectItem key={pm.id} value={pm.id}>
             {pm.name}

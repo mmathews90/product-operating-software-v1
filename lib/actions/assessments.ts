@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
-import type { AssessmentWithScores, DimensionTrendPoint } from "@/lib/types/assessments";
+import type { Assessment, AssessmentWithScores, DimensionTrendPoint } from "@/lib/types/assessments";
 
 export async function getAssessmentsForPM(pmId: string) {
   const supabase = await createClient();
@@ -14,6 +14,59 @@ export async function getAssessmentsForPM(pmId: string) {
 
   if (error) throw error;
   return data;
+}
+
+export async function getAssessmentsPaginated({
+  pmId,
+  page = 1,
+  pageSize = 10,
+}: {
+  pmId?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<{
+  data: (Assessment & { pm_name: string })[];
+  total: number;
+}> {
+  const supabase = await createClient();
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase
+    .from("assessments")
+    .select("*, product_managers!inner(name)", { count: "exact" })
+    .order("quarter", { ascending: false })
+    .range(from, to);
+
+  if (pmId) {
+    query = query.eq("pm_id", pmId);
+  }
+
+  const { data, error, count } = await query;
+
+  if (error) throw error;
+
+  const mapped = (data ?? []).map((row: any) => ({
+    ...row,
+    pm_name: row.product_managers.name,
+    product_managers: undefined,
+  }));
+
+  return { data: mapped, total: count ?? 0 };
+}
+
+export async function getAllPMsTrendData() {
+  const { getProductManagers } = await import("./product-managers");
+  const pms = await getProductManagers();
+
+  const results = await Promise.all(
+    pms.map(async (pm) => {
+      const trends = await getTrendData(pm.id);
+      return { pm, trends };
+    })
+  );
+
+  return results;
 }
 
 export async function getAssessmentById(

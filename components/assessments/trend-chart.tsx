@@ -19,7 +19,13 @@ const DIMENSION_COLORS: Record<Dimension, string> = {
   people_skills: "hsl(var(--chart-3))",
 };
 
-export function TrendChart({ data }: { data: DimensionTrendPoint[] }) {
+export function TrendChart({
+  data,
+  height = 400,
+}: {
+  data: DimensionTrendPoint[];
+  height?: number;
+}) {
   // Transform data into recharts format: { quarter, product_knowledge, process_knowledge, people_skills, ... }
   const quarters = [...new Set(data.map((d) => d.quarter))].sort();
 
@@ -35,7 +41,7 @@ export function TrendChart({ data }: { data: DimensionTrendPoint[] }) {
   const dimensions = Object.keys(DIMENSION_LABELS) as Dimension[];
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full" style={{ height }}>
       <ResponsiveContainer width="100%" height="100%">
         <LineChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
