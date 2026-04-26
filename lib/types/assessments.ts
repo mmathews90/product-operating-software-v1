@@ -6,13 +6,23 @@ export const DIMENSION_LABELS: Record<Dimension, string> = {
   people_skills: "People Skills",
 };
 
+export interface PMLevel {
+  id: string;
+  user_id: string;
+  name: string;
+  sort_order: number;
+  created_at: string;
+}
+
 export interface ProductManager {
   id: string;
   user_id: string;
   name: string;
   role: string | null;
+  level_id: string | null;
   avatar_url: string | null;
   created_at: string;
+  level?: PMLevel | null;
 }
 
 export interface AssessmentCriterion {

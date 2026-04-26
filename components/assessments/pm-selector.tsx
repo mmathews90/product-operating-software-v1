@@ -40,8 +40,8 @@ export function PMSelector({
         {productManagers.map((pm) => (
           <SelectItem key={pm.id} value={pm.id}>
             {pm.name}
-            {pm.role && (
-              <span className="text-muted-foreground ml-2">· {pm.role}</span>
+            {pm.level && (
+              <span className="text-muted-foreground ml-2">· {pm.level.name}</span>
             )}
           </SelectItem>
         ))}

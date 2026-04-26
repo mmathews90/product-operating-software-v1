@@ -21,8 +21,8 @@ export function PMTrendCard({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">{pm.name}</CardTitle>
-          {pm.role && (
-            <span className="text-sm text-muted-foreground">{pm.role}</span>
+          {pm.level && (
+            <span className="text-sm text-muted-foreground">{pm.level.name}</span>
           )}
         </div>
       </CardHeader>

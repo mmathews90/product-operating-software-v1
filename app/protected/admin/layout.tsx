@@ -22,6 +22,10 @@ export default function AdminLayout({
             href="/protected/admin/product-managers"
             label="Product Managers"
           />
+          <AdminNavLink
+            href="/protected/admin/levels"
+            label="Levels"
+          />
         </Suspense>
       </div>
 
