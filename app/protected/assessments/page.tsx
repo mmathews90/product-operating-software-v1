@@ -2,7 +2,6 @@ import { Suspense } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { getProductManagers } from "@/lib/actions/product-managers";
 import { getAssessmentsPaginated } from "@/lib/actions/assessments";
-import { seedDefaultCriteria } from "@/lib/actions/criteria";
 import { PMSelector } from "@/components/assessments/pm-selector";
 import { AssessmentTable } from "@/components/assessments/assessment-table";
 import { Users } from "lucide-react";
@@ -22,8 +21,6 @@ export default async function AssessmentsPage({
   } = await supabase.auth.getUser();
 
   if (!user) return null;
-
-  await seedDefaultCriteria();
 
   const productManagers = await getProductManagers();
 
