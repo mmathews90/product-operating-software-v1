@@ -10,7 +10,19 @@ import { formatCadenceLabel } from "@/lib/types/assessments";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 
-export default async function NewGoalsPage({
+export default function NewGoalsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ assessmentId?: string }>;
+}) {
+  return (
+    <Suspense>
+      <NewGoalsGate searchParams={searchParams} />
+    </Suspense>
+  );
+}
+
+async function NewGoalsGate({
   searchParams,
 }: {
   searchParams: Promise<{ assessmentId?: string }>;
@@ -19,11 +31,7 @@ export default async function NewGoalsPage({
 
   if (!assessmentId) redirect("/protected/goals");
 
-  return (
-    <Suspense>
-      <NewGoalsContent assessmentId={assessmentId} />
-    </Suspense>
-  );
+  return <NewGoalsContent assessmentId={assessmentId} />;
 }
 
 async function NewGoalsContent({ assessmentId }: { assessmentId: string }) {
