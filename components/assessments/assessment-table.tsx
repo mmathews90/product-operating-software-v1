@@ -71,7 +71,6 @@ export function AssessmentTable({
                   <TableHead>Period</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
-                  <TableHead>Notes</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -117,14 +116,6 @@ export function AssessmentTable({
                         className="block text-muted-foreground"
                       >
                         {new Date(assessment.created_at).toLocaleDateString()}
-                      </Link>
-                    </TableCell>
-                    <TableCell className="max-w-[300px]">
-                      <Link
-                        href={`/protected/assessments/${assessment.id}`}
-                        className="block text-muted-foreground truncate"
-                      >
-                        {assessment.notes || "\u2014"}
                       </Link>
                     </TableCell>
                   </TableRow>
