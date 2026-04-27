@@ -8,6 +8,7 @@ import {
 import { getProductManagers } from "@/lib/actions/product-managers";
 import { getCriteria } from "@/lib/actions/criteria";
 import { AssessmentForm } from "@/components/assessments/assessment-form";
+import { FocusAreasCallout } from "@/components/assessments/focus-areas-callout";
 import { formatCadenceLabel } from "@/lib/types/assessments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -95,6 +96,10 @@ export default async function AssessmentDetailPage({
           </form>
         )}
       </div>
+
+      {assessment.status === "completed" && (
+        <FocusAreasCallout scores={assessment.scores} />
+      )}
 
       <AssessmentForm
         productManagers={productManagers}
