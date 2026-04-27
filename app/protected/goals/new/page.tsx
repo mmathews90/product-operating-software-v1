@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getAssessmentById } from "@/lib/actions/assessments";
@@ -18,6 +19,14 @@ export default async function NewGoalsPage({
 
   if (!assessmentId) redirect("/protected/goals");
 
+  return (
+    <Suspense>
+      <NewGoalsContent assessmentId={assessmentId} />
+    </Suspense>
+  );
+}
+
+async function NewGoalsContent({ assessmentId }: { assessmentId: string }) {
   const supabase = await createClient();
   const {
     data: { user },
