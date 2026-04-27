@@ -2,7 +2,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { SidebarNavLink } from "@/components/sidebar-nav-link";
 import { SidebarUserServer } from "@/components/sidebar-user-server";
 import { Separator } from "@/components/ui/separator";
-import { ClipboardList, TrendingUp, Settings } from "lucide-react";
+import { ClipboardList, Target, TrendingUp, Settings } from "lucide-react";
 import { Suspense } from "react";
 
 export function Sidebar() {
@@ -21,6 +21,13 @@ export function Sidebar() {
             href="/protected/assessments"
             icon={<ClipboardList className="h-4 w-4" />}
             label="Assessments"
+          />
+        </Suspense>
+        <Suspense>
+          <SidebarNavLink
+            href="/protected/goals"
+            icon={<Target className="h-4 w-4" />}
+            label="Goals"
           />
         </Suspense>
         <Suspense>

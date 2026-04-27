@@ -13,7 +13,7 @@ import { formatCadenceLabel } from "@/lib/types/assessments";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Target } from "lucide-react";
 
 export default async function AssessmentDetailPage({
   params,
@@ -88,6 +88,14 @@ export default async function AssessmentDetailPage({
             </p>
           </div>
         </div>
+        {assessment.status === "completed" && (
+          <Link href={`/protected/goals/new?assessmentId=${assessmentId}`}>
+            <Button size="sm">
+              <Target className="h-4 w-4 mr-1" />
+              Set Goals
+            </Button>
+          </Link>
+        )}
         {assessment.status !== "completed" && (
           <form action={handleDelete}>
             <Button variant="destructive" size="sm" type="submit">
@@ -107,6 +115,20 @@ export default async function AssessmentDetailPage({
         existingAssessment={assessment}
         lastScores={lastScores}
       />
+
+      {assessment.status === "completed" && (
+        <div className="flex gap-3">
+          <Link href={`/protected/goals/new?assessmentId=${assessmentId}`}>
+            <Button>
+              <Target className="h-4 w-4 mr-1" />
+              Set Goals
+            </Button>
+          </Link>
+          <Link href={`/protected/assessments?pmId=${assessment.pm_id}`}>
+            <Button variant="outline">Back</Button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 }
