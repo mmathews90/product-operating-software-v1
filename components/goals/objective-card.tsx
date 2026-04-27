@@ -4,21 +4,10 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
-import {
-  updateObjective,
-  deleteObjective,
-  updateKeyResult,
-} from "@/lib/actions/goals";
+import { deleteObjective } from "@/lib/actions/goals";
 import type { ObjectiveWithKeyResults } from "@/lib/types/goals";
-import { GOAL_STATUS_LABELS } from "@/lib/types/goals";
+import { GOAL_STATUS_LABELS, formatScore, scoreColor } from "@/lib/types/goals";
 import type { GoalStatus } from "@/lib/types/goals";
 import { DIMENSION_LABELS } from "@/lib/types/assessments";
 import type { Dimension } from "@/lib/types/assessments";
@@ -32,62 +21,79 @@ const STATUS_COLORS: Record<GoalStatus, string> = {
 
 export function ObjectiveCard({
   objective,
+  onClick,
 }: {
   objective: ObjectiveWithKeyResults;
+  onClick?: () => void;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
-  async function handleStatusChange(status: GoalStatus) {
-    setLoading(true);
+  async function handleDelete(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!confirm("Delete this objective and all its key results?")) return;
+    setDeleting(true);
     try {
-      await updateObjective({ id: objective.id, status });
+      await deleteObjective(objective.id);
     } finally {
-      setLoading(false);
+      setDeleting(false);
     }
   }
 
-  async function handleKRStatusChange(krId: string, status: GoalStatus) {
-    await updateKeyResult({ id: krId, status });
-  }
-
-  async function handleDelete() {
-    if (!confirm("Delete this objective and all its key results?")) return;
-    await deleteObjective(objective.id);
-  }
-
   return (
-    <Card>
+    <Card
+      className={onClick ? "cursor-pointer hover:border-foreground/20 transition-colors" : ""}
+      onClick={onClick}
+    >
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="space-y-1">
             <CardTitle className="text-base">{objective.title}</CardTitle>
-            {objective.criterion && (
-              <Badge variant="outline" className="text-xs">
-                {objective.criterion.name} ·{" "}
-                {DIMENSION_LABELS[objective.criterion.dimension as Dimension]}
+            <div className="flex items-center gap-2 flex-wrap">
+              {objective.criterion && (
+                <Badge variant="outline" className="text-xs">
+                  {objective.criterion.name} ·{" "}
+                  {DIMENSION_LABELS[objective.criterion.dimension as Dimension]}
+                </Badge>
+              )}
+              <Badge className={`text-xs ${STATUS_COLORS[objective.status]}`}>
+                {GOAL_STATUS_LABELS[objective.status]}
               </Badge>
-            )}
+            </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
-            <Select
-              value={objective.status}
-              onValueChange={(v) => handleStatusChange(v as GoalStatus)}
-              disabled={loading}
+            {/* Score summary */}
+            <div className="text-xs text-right space-y-0.5">
+              <div>
+                Mid:{" "}
+                <span
+                  className={
+                    objective.mid_point_score !== null
+                      ? `font-semibold ${scoreColor(objective.mid_point_score)}`
+                      : "text-muted-foreground"
+                  }
+                >
+                  {formatScore(objective.mid_point_score)}
+                </span>
+              </div>
+              <div>
+                Final:{" "}
+                <span
+                  className={
+                    objective.final_score !== null
+                      ? `font-semibold ${scoreColor(objective.final_score)}`
+                      : "text-muted-foreground"
+                  }
+                >
+                  {formatScore(objective.final_score)}
+                </span>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleDelete}
+              disabled={deleting}
             >
-              <SelectTrigger className="h-7 text-xs w-[130px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {(
-                  Object.entries(GOAL_STATUS_LABELS) as [GoalStatus, string][]
-                ).map(([key, label]) => (
-                  <SelectItem key={key} value={key}>
-                    {label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Button variant="ghost" size="sm" onClick={handleDelete}>
               <Trash2 className="h-3 w-3 text-destructive" />
             </Button>
           </div>
@@ -95,7 +101,7 @@ export function ObjectiveCard({
       </CardHeader>
       {objective.key_results.length > 0 && (
         <CardContent>
-          <ul className="space-y-2">
+          <ul className="space-y-1">
             {objective.key_results.map((kr) => (
               <li
                 key={kr.id}
@@ -103,35 +109,28 @@ export function ObjectiveCard({
               >
                 <span
                   className={
-                    kr.status === "completed"
-                      ? "line-through text-muted-foreground"
+                    objective.status === "completed"
+                      ? "text-muted-foreground"
                       : ""
                   }
                 >
                   {kr.title}
                 </span>
-                <Select
-                  value={kr.status}
-                  onValueChange={(v) =>
-                    handleKRStatusChange(kr.id, v as GoalStatus)
-                  }
-                >
-                  <SelectTrigger className="h-6 text-xs w-[120px] shrink-0">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {(
-                      Object.entries(GOAL_STATUS_LABELS) as [
-                        GoalStatus,
-                        string,
-                      ][]
-                    ).map(([key, label]) => (
-                      <SelectItem key={key} value={key}>
-                        {label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {(kr.mid_point_score !== null || kr.final_score !== null) && (
+                  <span className="text-xs text-muted-foreground shrink-0">
+                    {kr.mid_point_score !== null && (
+                      <span className={scoreColor(kr.mid_point_score)}>
+                        {formatScore(kr.mid_point_score)}
+                      </span>
+                    )}
+                    {kr.mid_point_score !== null && kr.final_score !== null && " → "}
+                    {kr.final_score !== null && (
+                      <span className={scoreColor(kr.final_score)}>
+                        {formatScore(kr.final_score)}
+                      </span>
+                    )}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

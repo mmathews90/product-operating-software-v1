@@ -185,6 +185,56 @@ export async function updateKeyResult(data: {
   revalidatePath("/protected/goals");
 }
 
+export async function scoreObjective(data: {
+  objectiveId: string;
+  phase: "mid_point" | "final";
+  krScores: { id: string; score: number }[];
+  notes: string;
+}) {
+  const supabase = await createClient();
+
+  // Validate scores
+  for (const kr of data.krScores) {
+    if (kr.score < 0 || kr.score > 1 || Math.round(kr.score * 10) !== kr.score * 10) {
+      throw new Error(`Invalid score ${kr.score} — must be 0.0-1.0 in tenths`);
+    }
+  }
+
+  const scoreCol = data.phase === "mid_point" ? "mid_point_score" : "final_score";
+  const notesCol = data.phase === "mid_point" ? "mid_point_notes" : "final_notes";
+
+  // Update each KR's score
+  for (const kr of data.krScores) {
+    const { error } = await supabase
+      .from("key_results")
+      .update({ [scoreCol]: kr.score, updated_at: new Date().toISOString() })
+      .eq("id", kr.id);
+    if (error) throw error;
+  }
+
+  // Compute average
+  const avg = data.krScores.length > 0
+    ? Math.round((data.krScores.reduce((sum, kr) => sum + kr.score, 0) / data.krScores.length) * 10) / 10
+    : 0;
+
+  // Update objective: cached score, notes, status
+  const newStatus = data.phase === "mid_point" ? "in_progress" : "completed";
+  const { error } = await supabase
+    .from("objectives")
+    .update({
+      [scoreCol]: avg,
+      [notesCol]: data.notes || null,
+      status: newStatus,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", data.objectiveId);
+
+  if (error) throw error;
+
+  revalidatePath("/protected/goals");
+  revalidatePath("/protected/assessments");
+}
+
 export async function deleteKeyResult(id: string) {
   const supabase = await createClient();
   const { error } = await supabase
