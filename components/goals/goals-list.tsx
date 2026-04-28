@@ -19,32 +19,12 @@ export function GoalsList({
 }) {
   const [openObjectiveId, setOpenObjectiveId] = useState<string | null>(null);
 
-  // Group by PM
-  const grouped = new Map<
-    string,
-    { pmName: string; objectives: ObjectiveWithMeta[] }
-  >();
-  for (const obj of objectives) {
-    if (!grouped.has(obj.pm_id)) {
-      grouped.set(obj.pm_id, { pmName: obj.pm_name, objectives: [] });
-    }
-    grouped.get(obj.pm_id)!.objectives.push(obj);
-  }
-
   const openObjective = objectives.find((o) => o.id === openObjectiveId) ?? null;
 
   function handleSaved() {
     if (!openObjective) return;
-    // Find next unscored objective in the same PM group
-    const pmGroup = grouped.get(openObjective.pm_id);
-    if (!pmGroup) {
-      setOpenObjectiveId(null);
-      return;
-    }
-    const currentIdx = pmGroup.objectives.findIndex(
-      (o) => o.id === openObjectiveId
-    );
-    const next = pmGroup.objectives.find(
+    const currentIdx = objectives.findIndex((o) => o.id === openObjectiveId);
+    const next = objectives.find(
       (o, i) => i > currentIdx && o.status !== "completed"
     );
     if (next) {
@@ -69,24 +49,19 @@ export function GoalsList({
 
   return (
     <>
-      {Array.from(grouped.entries()).map(([pmId, group]) => (
-        <div key={pmId} className="space-y-3">
-          <h2 className="text-lg font-semibold">{group.pmName}</h2>
-          <div className="space-y-3">
-            {group.objectives.map((obj) => (
-              <div key={obj.id} className="space-y-1">
-                <p className="text-xs text-muted-foreground">
-                  {formatCadenceLabel(obj.assessment_cadence)}
-                </p>
-                <ObjectiveCard
-                  objective={obj}
-                  onClick={() => setOpenObjectiveId(obj.id)}
-                />
-              </div>
-            ))}
+      <div className="space-y-3">
+        {objectives.map((obj) => (
+          <div key={obj.id} className="space-y-1">
+            <p className="text-xs text-muted-foreground">
+              {formatCadenceLabel(obj.assessment_cadence)}
+            </p>
+            <ObjectiveCard
+              objective={obj}
+              onClick={() => setOpenObjectiveId(obj.id)}
+            />
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
 
       {openObjective && (
         <ScoringSheet
