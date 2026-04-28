@@ -60,6 +60,7 @@ export function AssessmentForm({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [unscoredIds, setUnscoredIds] = useState<Set<string>>(new Set());
 
   const isEditing = !!existingAssessment;
   const isCompleted = existingAssessment?.status === "completed";
@@ -81,9 +82,29 @@ export function AssessmentForm({
     );
   }
 
+  function validateAllScored(): boolean {
+    if (!formRef.current) return false;
+    const formData = new FormData(formRef.current);
+    const missing: string[] = [];
+    for (const c of criteria) {
+      const val = parseInt(formData.get(`current_${c.id}`) as string);
+      if (!val || val < 1 || val > 10) missing.push(c.id);
+    }
+    if (missing.length > 0) {
+      setUnscoredIds(new Set(missing));
+      setError(
+        `Please score all ${missing.length} remaining ${missing.length === 1 ? "criterion" : "criteria"} before completing.`
+      );
+      return false;
+    }
+    setUnscoredIds(new Set());
+    return true;
+  }
+
   async function handleSave(formData: FormData) {
-    setLoading(true);
     setError(null);
+    setUnscoredIds(new Set());
+    setLoading(true);
     try {
       if (isEditing) {
         formData.set("assessment_id", existingAssessment.id);
@@ -209,6 +230,7 @@ export function AssessmentForm({
                   defaultNotes={existing?.notes ?? undefined}
                   lastScore={lastScores?.[criterion.id]}
                   disabled={isCompleted}
+                  hasError={unscoredIds.has(criterion.id)}
                 />
               );
             })}
@@ -240,7 +262,10 @@ export function AssessmentForm({
             <Button
               type="button"
               disabled={loading}
-              onClick={() => setShowCompleteDialog(true)}
+              onClick={() => {
+                if (!validateAllScored()) return;
+                setShowCompleteDialog(true);
+              }}
             >
               {loading ? "Saving..." : "Complete Assessment"}
             </Button>

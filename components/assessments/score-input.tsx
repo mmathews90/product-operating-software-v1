@@ -12,12 +12,14 @@ export function ScoreInput({
   defaultNotes,
   lastScore,
   disabled,
+  hasError,
 }: {
   criterion: AssessmentCriterion;
   defaultCurrent?: number;
   defaultNotes?: string;
   lastScore?: number;
   disabled?: boolean;
+  hasError?: boolean;
 }) {
   const [current, setCurrent] = useState(defaultCurrent ?? 0);
   const [showNotes, setShowNotes] = useState(!!defaultNotes);
@@ -28,7 +30,8 @@ export function ScoreInput({
     <div
       className={cn(
         "space-y-3 p-4 rounded-lg border",
-        disabled && "opacity-75"
+        disabled && "opacity-75",
+        hasError && !hasScore && "border-destructive"
       )}
     >
       <div className="flex items-start justify-between gap-2">

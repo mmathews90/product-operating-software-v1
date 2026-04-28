@@ -176,11 +176,13 @@ export async function createAssessment(formData: FormData) {
 
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("current_")) {
+      const score = parseInt(value as string);
+      if (score < 1 || score > 10) continue;
       const criterionId = key.replace("current_", "");
       scores.push({
         assessment_id: assessment.id,
         criterion_id: criterionId,
-        current_score: parseInt(value as string),
+        current_score: score,
         target_score: targetMap[criterionId] ?? 7,
         notes: (formData.get(`notes_${criterionId}`) as string) || null,
       });
@@ -235,6 +237,8 @@ export async function updateAssessment(formData: FormData) {
   // Upsert scores
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("current_")) {
+      const score = parseInt(value as string);
+      if (score < 1 || score > 10) continue;
       const criterionId = key.replace("current_", "");
       const { error } = await supabase
         .from("assessment_scores")
@@ -242,7 +246,7 @@ export async function updateAssessment(formData: FormData) {
           {
             assessment_id: assessmentId,
             criterion_id: criterionId,
-            current_score: parseInt(value as string),
+            current_score: score,
             target_score: targetMap[criterionId] ?? 7,
             notes: (formData.get(`notes_${criterionId}`) as string) || null,
           },
@@ -296,6 +300,8 @@ export async function completeAssessment(formData: FormData) {
   // Upsert scores
   for (const [key, value] of formData.entries()) {
     if (key.startsWith("current_")) {
+      const score = parseInt(value as string);
+      if (score < 1 || score > 10) continue;
       const criterionId = key.replace("current_", "");
       const { error } = await supabase
         .from("assessment_scores")
@@ -303,7 +309,7 @@ export async function completeAssessment(formData: FormData) {
           {
             assessment_id: assessmentId,
             criterion_id: criterionId,
-            current_score: parseInt(value as string),
+            current_score: score,
             target_score: targetMap[criterionId] ?? 7,
             notes: (formData.get(`notes_${criterionId}`) as string) || null,
           },
