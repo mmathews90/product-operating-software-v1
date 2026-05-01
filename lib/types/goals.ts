@@ -36,7 +36,8 @@ export interface Objective {
   id: string;
   user_id: string;
   assessment_id: string;
-  pm_id: string;
+  pm_id: string | null;
+  subject_user_id: string | null;
   criterion_id: string | null;
   title: string;
   status: GoalStatus;

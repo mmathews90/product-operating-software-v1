@@ -34,7 +34,10 @@ export async function getAssessmentsPaginated({
 
   let query = supabase
     .from("assessments")
-    .select("*, product_managers!inner(name)", { count: "exact" })
+    .select(
+      "*, product_managers(name), subject:user_profiles!assessments_subject_user_id_fkey(display_name)",
+      { count: "exact" }
+    )
     .order("cadence", { ascending: false })
     .range(from, to);
 
@@ -48,8 +51,10 @@ export async function getAssessmentsPaginated({
 
   const mapped = (data ?? []).map((row: any) => ({
     ...row,
-    pm_name: row.product_managers.name,
+    pm_name:
+      row.subject?.display_name ?? row.product_managers?.name ?? "",
     product_managers: undefined,
+    subject: undefined,
   }));
 
   return { data: mapped, total: count ?? 0 };
@@ -138,7 +143,8 @@ export async function createAssessment(formData: FormData) {
 
   if (!user) throw new Error("Not authenticated");
 
-  const pmId = formData.get("pm_id") as string;
+  const pmId = (formData.get("pm_id") as string) || null;
+  const subjectUserId = (formData.get("subject_user_id") as string) || null;
   const cadence = formData.get("cadence") as string;
   const notes = (formData.get("notes") as string) || null;
 
@@ -148,6 +154,7 @@ export async function createAssessment(formData: FormData) {
     .insert({
       user_id: user.id,
       pm_id: pmId,
+      subject_user_id: subjectUserId,
       cadence,
       notes,
     })

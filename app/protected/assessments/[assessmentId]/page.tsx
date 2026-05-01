@@ -39,21 +39,40 @@ export default async function AssessmentDetailPage({
   const [productManagers, criteria, lastScores] = await Promise.all([
     getProductManagers(),
     getCriteria(),
-    getLastScoresForPM(assessment.pm_id, assessmentId),
+    assessment.pm_id
+      ? getLastScoresForPM(assessment.pm_id, assessmentId)
+      : Promise.resolve({} as Record<string, number>),
   ]);
 
-  const pm = productManagers.find((p) => p.id === assessment.pm_id);
+  const pm = assessment.pm_id
+    ? productManagers.find((p) => p.id === assessment.pm_id)
+    : null;
+
+  // Resolve subject name from PM record or user profile
+  let subjectName = pm?.name ?? "";
+  if (!subjectName && assessment.subject_user_id) {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("display_name")
+      .eq("id", assessment.subject_user_id)
+      .single();
+    subjectName = profile?.display_name ?? "";
+  }
+
+  const backHref = assessment.pm_id
+    ? `/protected/assessments?pmId=${assessment.pm_id}`
+    : "/protected/assessments";
 
   async function handleDelete() {
     "use server";
     await deleteAssessment(assessmentId);
-    redirect(`/protected/assessments?pmId=${assessment.pm_id}`);
+    redirect(backHref);
   }
 
   return (
     <div className="flex-1 w-full flex flex-col gap-6">
       <Link
-        href={`/protected/assessments?pmId=${assessment.pm_id}`}
+        href={backHref}
         className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground w-fit"
       >
         <ArrowLeft className="h-4 w-4" />
@@ -65,7 +84,7 @@ export default async function AssessmentDetailPage({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold">
-                {pm?.name} — {formatCadenceLabel(assessment.cadence)}
+                {subjectName} — {formatCadenceLabel(assessment.cadence)}
               </h1>
               <Badge
                 variant={
@@ -124,7 +143,7 @@ export default async function AssessmentDetailPage({
               Set Goals
             </Button>
           </Link>
-          <Link href={`/protected/assessments?pmId=${assessment.pm_id}`}>
+          <Link href={backHref}>
             <Button variant="outline">Back</Button>
           </Link>
         </div>

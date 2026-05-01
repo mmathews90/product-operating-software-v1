@@ -42,11 +42,13 @@ function makeDraft(
 export function GoalForm({
   assessmentId,
   pmId,
+  subjectUserId,
   focusAreas,
   criteria,
 }: {
   assessmentId: string;
-  pmId: string;
+  pmId?: string;
+  subjectUserId?: string;
   focusAreas: FocusArea[];
   criteria: AssessmentCriterion[];
 }) {
@@ -156,6 +158,7 @@ export function GoalForm({
       await createBulkObjectives({
         assessmentId,
         pmId,
+        subjectUserId,
         objectives: valid.map((o) => ({
           title: o.title.trim(),
           criterionId: o.criterionId,

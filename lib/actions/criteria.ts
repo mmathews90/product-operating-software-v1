@@ -24,8 +24,18 @@ export async function createCriterion(formData: FormData) {
 
   if (!user) throw new Error("Not authenticated");
 
+  // Get user's function from profile
+  const { data: profile } = await supabase
+    .from("user_profiles")
+    .select("function")
+    .eq("id", user.id)
+    .single();
+
+  const userFunction = profile?.function ?? "product_management";
+
   const { error } = await supabase.from("assessment_criteria").insert({
     user_id: user.id,
+    function: userFunction,
     name: formData.get("name") as string,
     dimension: formData.get("dimension") as Dimension,
     description: (formData.get("description") as string) || null,

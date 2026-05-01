@@ -12,7 +12,7 @@ export async function getAllObjectives(): Promise<
   const { data, error } = await supabase
     .from("objectives")
     .select(
-      "*, key_results(*), criterion:assessment_criteria(id, name, dimension), assessment:assessments(cadence), pm:product_managers(name)"
+      "*, key_results(*), criterion:assessment_criteria(id, name, dimension), assessment:assessments(cadence), pm:product_managers(name), subject:user_profiles!objectives_subject_user_id_fkey(display_name)"
     )
     .order("created_at", { ascending: false });
 
@@ -22,9 +22,10 @@ export async function getAllObjectives(): Promise<
     ...row,
     key_results: row.key_results ?? [],
     criterion: row.criterion ?? null,
-    pm_name: row.pm?.name ?? "",
+    pm_name: row.subject?.display_name ?? row.pm?.name ?? "",
     assessment_cadence: row.assessment?.cadence ?? "",
     pm: undefined,
+    subject: undefined,
     assessment: undefined,
   }));
 }
@@ -75,7 +76,8 @@ export async function getObjectivesForPM(
 
 export async function createBulkObjectives(data: {
   assessmentId: string;
-  pmId: string;
+  pmId?: string;
+  subjectUserId?: string;
   objectives: {
     title: string;
     criterionId: string | null;
@@ -95,7 +97,8 @@ export async function createBulkObjectives(data: {
       .insert({
         user_id: user.id,
         assessment_id: data.assessmentId,
-        pm_id: data.pmId,
+        pm_id: data.pmId || null,
+        subject_user_id: data.subjectUserId || null,
         criterion_id: obj.criterionId || null,
         title: obj.title,
       })

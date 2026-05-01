@@ -1,10 +1,77 @@
-export type Dimension = "product_knowledge" | "process_knowledge" | "people_skills";
+export type Dimension = string;
 
-export const DIMENSION_LABELS: Record<Dimension, string> = {
+// Legacy constant for backward compatibility — prefer loading from dimensions table
+export const DIMENSION_LABELS: Record<string, string> = {
   product_knowledge: "Product Knowledge",
   process_knowledge: "Process Knowledge",
   people_skills: "People Skills",
 };
+
+// ============================================
+// User Functions & Roles
+// ============================================
+
+export type UserFunction = "product_management" | "product_design" | "product_operations";
+
+export type UserRole =
+  | "product_manager"
+  | "product_lead"
+  | "product_designer"
+  | "design_lead"
+  | "product_ops_manager"
+  | "product_ops_lead";
+
+export const LEAD_ROLES: UserRole[] = ["product_lead", "design_lead", "product_ops_lead"];
+
+export function isLeadRole(role: UserRole): boolean {
+  return LEAD_ROLES.includes(role);
+}
+
+export const USER_FUNCTION_LABELS: Record<UserFunction, string> = {
+  product_management: "Product Management",
+  product_design: "Product Design",
+  product_operations: "Product Operations",
+};
+
+export const ROLES_BY_FUNCTION: Record<UserFunction, { value: UserRole; label: string }[]> = {
+  product_management: [
+    { value: "product_lead", label: "Product Lead" },
+    { value: "product_manager", label: "Product Manager" },
+  ],
+  product_design: [
+    { value: "design_lead", label: "Design Lead" },
+    { value: "product_designer", label: "Product Designer" },
+  ],
+  product_operations: [
+    { value: "product_ops_lead", label: "Product Operations Lead" },
+    { value: "product_ops_manager", label: "Product Operations Manager" },
+  ],
+};
+
+export interface UserProfile {
+  id: string;
+  display_name: string;
+  function: UserFunction;
+  role: UserRole;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TeamMembership {
+  id: string;
+  lead_id: string;
+  member_id: string;
+  created_at: string;
+}
+
+export interface DimensionDef {
+  id: string;
+  function: string;
+  slug: string;
+  label: string;
+  sort_order: number;
+}
 
 export type Rhythm = "adhoc" | "monthly" | "quarterly";
 
@@ -30,6 +97,7 @@ export interface ProductManager {
 export interface AssessmentCriterion {
   id: string;
   user_id: string;
+  function: UserFunction;
   name: string;
   dimension: Dimension;
   description: string | null;
@@ -41,7 +109,8 @@ export interface AssessmentCriterion {
 export interface Assessment {
   id: string;
   user_id: string;
-  pm_id: string;
+  pm_id: string | null;
+  subject_user_id: string | null;
   cadence: string;
   status: "draft" | "completed";
   notes: string | null;

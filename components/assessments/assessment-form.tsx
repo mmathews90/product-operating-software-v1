@@ -112,8 +112,9 @@ export function AssessmentForm({
       } else {
         await createAssessment(formData);
       }
+      const pmId = formData.get("pm_id") || existingAssessment?.pm_id;
       router.push(
-        `/protected/assessments?pmId=${formData.get("pm_id") || existingAssessment?.pm_id}`
+        pmId ? `/protected/assessments?pmId=${pmId}` : "/protected/assessments"
       );
     } catch (e: any) {
       setError(e.message || "Something went wrong");
@@ -138,8 +139,9 @@ export function AssessmentForm({
         completeData.set("assessment_id", assessmentId);
         await completeAssessment(completeData);
       }
+      const completePmId = formRef.current.querySelector<HTMLInputElement>('[name="pm_id"]')?.value || existingAssessment?.pm_id;
       router.push(
-        `/protected/assessments?pmId=${formRef.current.querySelector<HTMLInputElement>('[name="pm_id"]')?.value || existingAssessment?.pm_id}`
+        completePmId ? `/protected/assessments?pmId=${completePmId}` : "/protected/assessments"
       );
     } catch (e: any) {
       setError(e.message || "Something went wrong");

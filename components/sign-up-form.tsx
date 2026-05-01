@@ -12,9 +12,22 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import {
+  USER_FUNCTION_LABELS,
+  ROLES_BY_FUNCTION,
+  type UserFunction,
+  type UserRole,
+} from "@/lib/types/assessments";
 
 export function SignUpForm({
   className,
@@ -23,9 +36,21 @@ export function SignUpForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [repeatPassword, setRepeatPassword] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [userFunction, setUserFunction] = useState<UserFunction | "">("");
+  const [userRole, setUserRole] = useState<UserRole | "">("");
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+
+  const roleOptions = userFunction
+    ? ROLES_BY_FUNCTION[userFunction]
+    : [];
+
+  const handleFunctionChange = (value: string) => {
+    setUserFunction(value as UserFunction);
+    setUserRole("");
+  };
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,11 +64,28 @@ export function SignUpForm({
       return;
     }
 
+    if (!displayName.trim()) {
+      setError("Please enter your name");
+      setIsLoading(false);
+      return;
+    }
+
+    if (!userFunction || !userRole) {
+      setError("Please select your function and role");
+      setIsLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
+          data: {
+            display_name: displayName.trim(),
+            function: userFunction,
+            role: userRole,
+          },
           emailRedirectTo: `${window.location.origin}/protected`,
         },
       });
@@ -67,6 +109,17 @@ export function SignUpForm({
           <form onSubmit={handleSignUp}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
+                <Label htmlFor="display-name">Name</Label>
+                <Input
+                  id="display-name"
+                  type="text"
+                  placeholder="Your name"
+                  required
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                />
+              </div>
+              <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -77,6 +130,49 @@ export function SignUpForm({
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
+              <div className="grid gap-2">
+                <Label htmlFor="function">Function</Label>
+                <Select
+                  value={userFunction}
+                  onValueChange={handleFunctionChange}
+                >
+                  <SelectTrigger id="function">
+                    <SelectValue placeholder="Select your function" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(
+                      Object.entries(USER_FUNCTION_LABELS) as [
+                        UserFunction,
+                        string,
+                      ][]
+                    ).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              {userFunction && (
+                <div className="grid gap-2">
+                  <Label htmlFor="role">Role</Label>
+                  <Select
+                    value={userRole}
+                    onValueChange={(v) => setUserRole(v as UserRole)}
+                  >
+                    <SelectTrigger id="role">
+                      <SelectValue placeholder="Select your role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {roleOptions.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>

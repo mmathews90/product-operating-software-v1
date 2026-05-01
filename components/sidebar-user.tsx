@@ -10,7 +10,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function SidebarUser({ email }: { email: string }) {
+export function SidebarUser({
+  email,
+  displayName,
+  role,
+}: {
+  email: string;
+  displayName?: string;
+  role?: string;
+}) {
   const router = useRouter();
 
   const logout = async () => {
@@ -24,7 +32,7 @@ export function SidebarUser({ email }: { email: string }) {
       <DropdownMenuTrigger asChild>
         <button className="flex items-center gap-3 w-full rounded-md px-3 py-2 text-sm text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-colors">
           <User className="h-4 w-4 shrink-0" />
-          <span className="truncate">{email}</span>
+          <span className="truncate">{displayName ?? email}</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="start" className="w-56">

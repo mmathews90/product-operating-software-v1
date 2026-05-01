@@ -58,7 +58,20 @@ async function NewGoalsContent({ assessmentId }: { assessmentId: string }) {
     getCriteria(),
   ]);
 
-  const pm = productManagers.find((p) => p.id === assessment.pm_id);
+  const pm = assessment.pm_id
+    ? productManagers.find((p) => p.id === assessment.pm_id)
+    : null;
+
+  // Resolve subject name from PM record or user profile
+  let subjectName = pm?.name ?? "";
+  if (!subjectName && assessment.subject_user_id) {
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("display_name")
+      .eq("id", assessment.subject_user_id)
+      .single();
+    subjectName = profile?.display_name ?? "";
+  }
 
   // Compute focus areas (same logic as FocusAreasCallout)
   const gaps = assessment.scores
@@ -89,7 +102,7 @@ async function NewGoalsContent({ assessmentId }: { assessmentId: string }) {
 
       <div>
         <h1 className="text-2xl font-bold">
-          Set Goals — {pm?.name} — {formatCadenceLabel(assessment.cadence)}
+          Set Goals — {subjectName} — {formatCadenceLabel(assessment.cadence)}
         </h1>
         <p className="text-muted-foreground text-sm mt-1">
           Create objectives and key results based on assessment focus areas.
@@ -100,7 +113,8 @@ async function NewGoalsContent({ assessmentId }: { assessmentId: string }) {
 
       <GoalForm
         assessmentId={assessmentId}
-        pmId={assessment.pm_id}
+        pmId={assessment.pm_id ?? undefined}
+        subjectUserId={assessment.subject_user_id ?? undefined}
         focusAreas={focusAreas}
         criteria={criteria}
       />
